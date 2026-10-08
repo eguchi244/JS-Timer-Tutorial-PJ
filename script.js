@@ -10,18 +10,22 @@ const notification   = document.getElementById('notification');
 const btnStart       = document.getElementById('btnStart');
 const btnStop        = document.getElementById('btnStop');
 const btnReset       = document.getElementById('btnReset');
+const btnLap         = document.getElementById('btnLap');
+const lapControls    = document.getElementById('lapControls');
+const lapList        = document.getElementById('lapList');
 
 /* ==========================================
  * 状態変数
  * ========================================*/
 const state = {
   mode        : 'countdown', // 'countdown' | 'stopwatch'
-  status      : 'idle',      // 'idle' | 'running' | 'paused'
+  status      : 'idle',      // 'idle' | 'running' | 'paused' | 'finished'
   intervalId  : null,        // setInterval の返り値
   startTime   : null,        // Date.now() 基準点（ドリフト補正用, 一時停止のたびに巻き戻しの再計算）
   elapsedSec  : 0,           // ストップウォッチ用（経過時間）
   remainingSec: 0,           // カウントダウン用（残り時間）
   targetSec   : 0,           // カウントダウン設定値（リセット基準）
+  laps        : [],          // ラップ時点の elapsedSec 一覧
 };
 
 /* ==========================================
@@ -67,8 +71,8 @@ function tick() {
       // 状態の更新
       state.intervalId = null;
       state.remainingSec = 0;
-      state.status = 'paused';
-      notification.classList.remove('hidden');
+      state.status = 'finished';
+      onCountdownFinished();
       // UI更新
       updateDisplay();
       updateButtons();
@@ -85,7 +89,7 @@ function tick() {
 }
 
 /* ==========================================
- * 画面・ボタン更新
+ * 画面・ボタン
  * ========================================*/
 
 /**
@@ -101,18 +105,32 @@ function updateDisplay() {
 }
 
 /**
- * 現在の状態に応じて3つのボタンの活性・非活性を切り替える
+ * 現在の状態に応じて4つのボタンとカウントダウン入力欄の活性・非活性を切り替える
+ * 
+ * NOTE: タイムアップ後は再スタート不可にする
  */
 function updateButtons() {
   // 各状態を定義する
   const running  = state.status === 'running';
   const idle     = state.status === 'idle';
+  const finished = state.status === 'finished';
   const noTarget = state.mode === 'countdown' && state.targetSec === 0; // カウントダウン時の時間未設定
+  const inputsDisabled = state.mode === 'countdown' && !idle; // 計測中
 
   // ボタンの活性・非活性を切り替える
-  btnStart.disabled = running || noTarget;
+  btnStart.disabled = running || finished || noTarget;
   btnStop.disabled  = !running;
   btnReset.disabled = idle;
+
+  // 計測中のみラップボタンを活性にする
+  if (state.mode === 'stopwatch') {
+    btnLap.disabled = !running;
+  }
+
+  // 計測中は入力欄を編集不可にする
+  [inputH, inputM, inputS].forEach(input => {
+    input.disabled = inputsDisabled;
+  });
 }
 
 /* ==========================================
@@ -140,7 +158,8 @@ function startTimer() {
   // 状態更新
   state.status = 'running';
   // UI更新
-  notification.classList.add('hidden'); // 通知タグを非表示に変更
+  display.classList.remove('finished');
+  notification.classList.add('hidden');
   updateButtons();
 }
 
@@ -169,10 +188,13 @@ function resetTimer() {
   state.elapsedSec = 0;
   state.remainingSec = state.targetSec;
   state.status = 'idle';
+  state.laps = [];
   // UI更新
+  display.classList.remove('finished');
   notification.classList.add('hidden');
   updateDisplay();
   updateButtons();
+  updateLapList();
 }
 
 /* ==========================================
@@ -202,8 +224,10 @@ function switchMode(mode) {
   state.remainingSec = 0;
   state.targetSec = 0;
   state.status = 'idle';
+  state.laps = [];
 
   // 通知タグUIの更新　
+  display.classList.remove('finished');
   notification.classList.add('hidden');
 
   // 現在選択されているタブだけに active を付与する
@@ -215,11 +239,15 @@ function switchMode(mode) {
   // NOTE: ストップウォッチ選択時はカウントダウン設定欄は非表示にする
   if (state.mode === 'countdown') {
     countdownInput.classList.remove('hidden');
+    lapControls.classList.add('hidden');
+    lapList.classList.add('hidden');
     inputH.value = 0;
     inputM.value = 0;
     inputS.value = 0;
   } else {
     countdownInput.classList.add('hidden');
+    lapControls.classList.remove('hidden');
+    lapList.classList.add('hidden');
   }
 
   // 画面・ボタンUIの更新
@@ -276,6 +304,89 @@ function onInputChange() {
 }
 
 /* ==========================================
+ * タイムアップ通知
+ * ========================================*/
+
+/**
+ * タイムアップ通知音
+ * 
+ * NOTE:　Web Audio API による非同期の通知音
+ */
+async function playBeep() {
+  try {
+    const ctx = new AudioContext();
+    if (ctx.state === 'suspended') {
+      await ctx.resume(); // 自動再生ポリシーで suspended の場合、再開を待つ
+    }
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 1.2);
+  } catch (_) {
+    // AudioContext が使えない環境・resume 失敗時は無視する
+  }
+}
+
+/**
+ * タイムアップ通知処理
+ * 
+ * NOTE: 通知音、通知アニメーション、通知非表示解除
+ */
+function onCountdownFinished() {
+  display.classList.add('finished'); // CSS でアニメーションを当てる
+  notification.classList.remove('hidden');
+  playBeep(); // async 関数だが await せずに呼び出す（fire-and-forget）
+}
+
+/* ==========================================
+ * ラップ
+ * ========================================*/
+/**
+ * ラップリストのHTMLを作成する
+ * 
+ * NOTE:　ラップが存在しない時はラップリストを非表示にして何もしない
+ */
+function updateLapList() {
+  // ラップが存在しない時はラップリストを非表示にして何もしない
+  if (state.laps.length === 0) {
+    lapList.classList.add('hidden');
+    return;
+  }
+
+  // ラップが存在する時はラップリストを表示する
+  lapList.classList.remove('hidden');
+  // 以前に表示していた古いリストを削除する
+  lapList.innerHTML = '';
+
+  // ラップリストのHTMLを作成する
+  state.laps.forEach(sec => {
+    // 要素を生成する
+    const li = document.createElement('li');
+    const span = document.createElement('span');
+    // ラップタイムを<span>タグにセットする
+    span.textContent = formatTime(sec); // XSS対策（textContentを使用）
+    // ol#lapList にラップリストを追加する
+    li.appendChild(span);
+    lapList.appendChild(li);
+  });
+}
+
+/**
+ * ラップタイムを記録する
+ */
+function addLap() {
+  // 現在の経過時間を配列に保存
+  state.laps.push(state.elapsedSec);
+  // ラップリストのHTMLを作成する
+  updateLapList();
+}
+
+/* ==========================================
  * イベントリスナー
  * ========================================*/
 // --- タブ ---
@@ -293,6 +404,9 @@ btnReset.addEventListener('click', resetTimer);
   input.addEventListener('input', onInputChange);
   input.addEventListener('change', onInputChange);
 });
+
+// --- ラップ ---
+btnLap.addEventListener('click', addLap);
 
 /* ==========================================
  * 初期描画
