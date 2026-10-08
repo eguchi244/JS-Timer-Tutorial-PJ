@@ -3,20 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ストップウォッチ</title>
+  <title>タイマー</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="app">
-    <h1>ストップウォッチ</h1>
+  <div class="app">
+    <h1>タイマー</h1>
 
+    <!-- タブ切り替え -->
+    <div class="tabs">
+      <button class="tab active" data-mode="countdown">カウントダウン</button>
+      <button class="tab" data-mode="stopwatch">ストップウォッチ</button>
+    </div>
+
+    <!-- カウントダウン時間入力 -->
+    <div id="countdownInput" class="countdown-input">
+      <div class="time-inputs">
+        <div class="input-group">
+          <input id="inputH" type="number" min="0" max="99" value="0">
+          <span>時</span>
+        </div>
+        <div class="input-group">
+          <input id="inputM" type="number" min="0" max="59" value="0">
+          <span>分</span>
+        </div>
+        <div class="input-group">
+          <input id="inputS" type="number" min="0" max="59" value="0">
+          <span>秒</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 画面（HH:MM:SS 表示） -->
     <div id="display" class="display">00:00:00</div>
 
+    <!-- タイムアップ通知 -->
+    <div id="notification" class="notification hidden">⏰ 時間になりました！</div>
+
+    <!-- 操作ボタン -->
     <div class="controls">
-      <button id="btnStart" class="btn btn-start">開始</button>
-      <button id="btnStop" class="btn btn-stop" disabled>停止</button>
+      <button id="btnStart" class="btn btn-start" disabled>開始</button>
+      <button id="btnStop"  class="btn btn-stop"  disabled>停止</button>
       <button id="btnReset" class="btn btn-reset" disabled>リセット</button>
     </div>
+
+    <!-- ラップ（Phase 3 で使用） -->
+    <div id="lapControls" class="lap-controls hidden">
+      <button id="btnLap" class="btn btn-lap" disabled>ラップ</button>
+    </div>
+    <ol id="lapList" class="lap-list hidden"></ol>
   </div>
 
   <script src="script.js"></script>
