@@ -41,7 +41,7 @@ const state = {
 function formatTime(totalSec) {
   // マイナス値の混入防止
   // NOTE: カウントダウンでは計算のタイミングによって一瞬だけ負の値になることがあるため、
-  //       0 未満は 0 に切り上げてから表示から表示する
+  //       0 未満は 0 に切り上げてから表示する
   const sec = Math.max(0, Math.floor(totalSec));
 
   const h = Math.floor(sec / 3600);
@@ -81,7 +81,7 @@ function tick() {
     }
 
   } else {
-    // 残り時間 = 現在時間 - 経過時間（ドリフト補正: 開始時刻からの差分で計算）
+    // 経過時間 = 現在時刻 - 開始時刻（ドリフト補正: 開始時刻からの差分で計算）
     state.elapsedSec = Math.floor((Date.now() - state.startTime) / 1000);
   }
   // UI更新
