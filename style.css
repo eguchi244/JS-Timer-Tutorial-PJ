@@ -1,0 +1,256 @@
+/* ==============================================
+ * 共通CSS（デスクトップ用CSSを基準）
+ * =============================================*/
+
+/*===============================================
+ リセットCSS
+ ===============================================*/
+ *, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/*===============================================
+ ボディ
+ ===============================================*/
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background: #1a1a2e;
+  color: #eee;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.app {
+  background: #16213e;
+  border-radius: 16px;
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  text-align: center;
+}
+
+h1 {
+  font-size: 1.4rem;
+  letter-spacing: 0.1em;
+  color: #a0aec0;
+  margin-bottom: 24px;
+}
+
+/*===============================================
+ タブ
+ ===============================================*/
+.tabs {
+  display: flex;
+  background: #0f3460;
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 24px;
+  gap: 4px;
+}
+
+.tab {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #a0aec0;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab.active {
+  background: #e94560;
+  color: #fff;
+  font-weight: bold;
+}
+
+/*===============================================
+ カウントダウン入力
+ ===============================================*/
+.countdown-input {
+  margin-bottom: 20px;
+}
+
+.time-inputs {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.input-group input {
+  width: 68px;
+  padding: 8px 4px;
+  font-size: 1.2rem;
+  text-align: center;
+  background: #0f3460;
+  border: 1px solid #334455;
+  border-radius: 6px;
+  color: #eee;
+  outline: none;
+  transition: border-color 0.2s;
+  -moz-appearance: textfield;
+}
+
+.input-group input::-webkit-outer-spin-button,
+.input-group input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.input-group input:focus {
+  border-color: #e94560;
+}
+
+.input-group input:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.input-group span {
+  font-size: 0.75rem;
+  color: #718096;
+}
+
+/*===============================================
+ 時間表示
+ ===============================================*/
+.display {
+  font-size: 4.5rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+  font-family: 'Courier New', 'Consolas', monospace;
+  color: #fff;
+  margin: 20px 0 16px;
+  line-height: 1;
+}
+
+.display.finished {
+  color: #e94560;
+  animation: blink 0.8s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.25; }
+}
+
+/*===============================================
+ タイムアップ通知
+ ===============================================*/
+.notification {
+  background: #e94560;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+/*===============================================
+ ボタン共通
+ ===============================================*/
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 10px 22px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: opacity 0.15s, transform 0.1s;
+  min-width: 80px;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn-start { background: #38a169; color: #fff; }
+.btn-stop  { background: #dd6b20; color: #fff; }
+.btn-reset { background: #4a5568; color: #fff; }
+.btn-lap   { background: #3182ce; color: #fff; }
+
+/*===============================================
+ ラップコントロール
+ ===============================================*/
+.lap-controls {
+  margin-bottom: 16px;
+}
+
+/* --- ラップ一覧 --- */
+.lap-list {
+  list-style: none;
+  text-align: left;
+  max-height: 220px;
+  overflow-y: auto;
+  border-top: 1px solid #2d3748;
+  padding-top: 12px;
+  counter-reset: lap-counter;
+}
+
+.lap-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 4px;
+  border-bottom: 1px solid #2d3748;
+  font-size: 0.9rem;
+  counter-increment: lap-counter;
+}
+
+.lap-list li::before {
+  content: 'Lap ' counter(lap-counter);
+  color: #718096;
+  font-size: 0.8rem;
+}
+
+.lap-list li span {
+  font-family: 'Courier New', monospace;
+  color: #a0aec0;
+  font-size: 1rem;
+}
+
+/*===============================================
+ ユーティリティ
+ ===============================================*/
+.hidden {
+  display: none;
+}
+
+/* ==============================================
+ * スマートフォン用CSS(SP対応)
+ * =============================================*/
+@media (max-width: 360px) {
+  .display { font-size: 3.2rem; }
+  .btn { padding: 8px 14px; font-size: 0.9rem; min-width: 68px; }
+  .input-group input { width: 56px; font-size: 1rem; }
+}
