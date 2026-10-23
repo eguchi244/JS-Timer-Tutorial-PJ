@@ -1,16 +1,23 @@
 /* ==========================================
  * DOM参照
  * ========================================*/
+/** 時間を HH:MM:SS で表示する要素 */
 const display  = document.getElementById('display');
+/** 開始ボタン */
 const btnStart = document.getElementById('btnStart');
+/** 停止ボタン */
 const btnStop  = document.getElementById('btnStop');
+/** リセットボタン */
 const btnReset = document.getElementById('btnReset');
 
 /* ==========================================
  * 状態変数
  * ========================================*/
-let status     = 'idle'; // 'idle' | 'running' | 'paused'
+/** 計測の状態（'idle' | 'running' | 'paused'） */
+let status     = 'idle';
+/** setInterval の返り値（止めるときに clearInterval に渡す。動いていないときは null） */
 let intervalId = null;
+/** 経過時間（秒） */
 let elapsedSec = 0;
 
 /* ==========================================
@@ -32,8 +39,8 @@ function formatTime(totalSec) {
 
 /**
  * 経過秒数を1つ進めて表示へ反映する
- * 
- * NOTE: setInterval から1秒ごとに呼ばれる  
+ *
+ * NOTE: setInterval から1秒ごとに呼ばれる
  */
 function tick() {
   elapsedSec++;
@@ -84,7 +91,7 @@ function stopTimer() {
 }
 
 /**
- * 計測を止めて初期状態(idle)へ戻す 
+ * 計測を止めて初期状態(idle)へ戻す
  */
 function resetTimer() {
   clearInterval(intervalId);
